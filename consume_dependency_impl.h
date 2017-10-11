@@ -26,13 +26,11 @@
 #ifndef consume_dependency_impl_h
 #define consume_dependency_impl_h
 
-inline dependency dependency::operator|(dependency d) { return dep + d.dep; }
+namespace {
 
-template<typename T> inline dependency operator|(dependency lhs, dependent_ptr<T> rhs) { return lhs.dep + dependency(rhs.value()).dep; }
-template<typename T> inline dependency operator|(dependent_ptr<T> lhs, dependency rhs) { return dependency(lhs.value()).dep + rhs.dep; }
-
-template<typename T, typename std::enable_if<sizeof(T) == 8>::type*>
-inline dependency::dependency(T value) {
+template<typename T, typename std::enable_if<sizeof(T) == 8>::type* = nullptr>
+inline dependency::dependency_type __create_dependency(T value) {
+    dependency::dependency_type dep;
 #if CPU(ARM64)
     asm volatile("eor %w[dep], %w[in], %w[in]" : [dep] "=r"(dep) : [in] "r"(bit_cast<uint64_t>(value)));
 #elif CPU(ARM)
@@ -43,10 +41,12 @@ inline dependency::dependency(T value) {
 #else
 #error Architecture unsupported.
 #endif
+    return dep;
 }
 
-template<typename T, typename std::enable_if<sizeof(T) == 4>::type*>
-inline dependency::dependency(T value) {
+template<typename T, typename std::enable_if<sizeof(T) == 4>::type* = nullptr>
+inline dependency::dependency_type __create_dependency(T value) {
+    dependency::dependency_type dep;
 #if CPU(ARM64)
     asm volatile("eor %w[dep], %w[in], %w[in]" : [dep] "=r"(dep) : [in] "r"(bit_cast<uint32_t>(value)));
 #elif CPU(ARM)
@@ -57,12 +57,27 @@ inline dependency::dependency(T value) {
 #else
 #error Architecture unsupported.
 #endif
+    return dep;
 }
 
-template <typename T, typename std::enable_if<sizeof(T) == 2>::type*>
-inline dependency::dependency(T value) : dependency(static_cast<uint32_t>(value)) {}
+template <typename T, typename std::enable_if<sizeof(T) == 2>::type* = nullptr>
+inline dependency::dependency_type __create_dependency(T value) { return __create_dependency(static_cast<uint32_t>(value)); }
 
-template <typename T, typename std::enable_if<sizeof(T) == 1>::type*>
-inline dependency::dependency(T value) : dependency(static_cast<uint32_t>(value)) {}
+template <typename T, typename std::enable_if<sizeof(T) == 1>::type* = nullptr>
+inline dependency::dependency_type __create_dependency(T value) { return __create_dependency(static_cast<uint32_t>(value)); }
+
+} // anonymous namespace
+
+template<typename T> dependency::dependency(T value) : dep(__create_dependency(value)) {}
+
+inline dependency dependency::operator|(dependency d) { return dep + d.dep; }
+
+template<typename T> inline dependency operator|(dependency lhs, dependent_ptr<T> rhs) { return lhs.dep + dependency(rhs.value()).dep; }
+template<typename T> inline dependency operator|(dependent_ptr<T> lhs, dependency rhs) { return dependency(lhs.value()).dep + rhs.dep; }
+
+inline uintptr_t operator|(dependency lhs, uintptr_t rhs) { return lhs.dep | rhs; }
+inline uintptr_t operator|(uintptr_t lhs, dependency rhs) { return lhs | rhs.dep; }
+inline intptr_t operator|(dependency lhs, intptr_t rhs) { return lhs.dep | rhs; }
+inline intptr_t operator|(intptr_t lhs, dependency rhs) { return lhs | rhs.dep; }
 
 #endif

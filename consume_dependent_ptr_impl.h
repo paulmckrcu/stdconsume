@@ -29,7 +29,7 @@
 template<typename T> inline dependent_ptr<T>::dependent_ptr(T* ptr) : ptr(ptr) {}
 template<typename T> inline dependent_ptr<T>::dependent_ptr(std::nullptr_t ptr) : ptr(ptr) {}
 
-template<typename T> inline dependent_ptr<T>::dependent_ptr(T* ptr, class dependency d) : ptr(reinterpret_cast<T*>((d | dependent_ptr<T>(ptr)).dep | reinterpret_cast<uintptr_t>(ptr))) {}
+template<typename T> inline dependent_ptr<T>::dependent_ptr(T* ptr, class dependency d) : ptr(reinterpret_cast<T*>((d | dependent_ptr<T>(ptr)) | reinterpret_cast<uintptr_t>(ptr))) {}
 template<typename T> inline dependent_ptr<T>::dependent_ptr(std::nullptr_t ptr, class dependency d) : dependent_ptr(static_cast<T*>(ptr), d) {}
 template<typename T> inline dependent_ptr<T>::dependent_ptr(dependent<uintptr_t> d) : dependent_ptr(reinterpret_cast<T*>(d.value), d.dependency) {}
 template<typename T> inline dependent_ptr<T>::dependent_ptr(dependent<intptr_t> d) : dependent_ptr(reinterpret_cast<T*>(d.value), d.dependency) {}
