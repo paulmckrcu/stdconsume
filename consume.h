@@ -155,6 +155,7 @@ implementation in C++ using this API.
 class dependency;
 
 // A value and its dependency.
+// FIXME: should this be opaque, to allow T to carry the dependency implicitly?
 template<typename T, typename Dependency = dependency>
 struct dependent {
     T value;
@@ -180,7 +181,7 @@ public:
 
     // No dependency yet.
     dependent_ptr() = default;
-    dependent_ptr(T*);
+    dependent_ptr(T*); // FIXME: should this automatically create a dependency as well?
     dependent_ptr(std::nullptr_t);
 
     // With dependency.
