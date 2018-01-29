@@ -39,9 +39,12 @@ include(CheckCXXCompilerFlag)
 # Configuration ###############################################################
 
 add_compile_flag("-Wall")
-add_compile_flag("-Werror")
+# add_compile_flag("-Werror")
 add_compile_flag("-Wextra")
 add_compile_flag("-Wno-expansion-to-defined")
+add_compile_flag("-fpermissive")
+add_compile_flag("-L/home/ozlabs/toolchain-gcc-7/lib64/")
+add_compile_flag("-Wl,--rpath,/home/ozlabs/toolchain-gcc-7/lib64/")
 if(uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
   add_compile_flag("-O0")
   add_compile_flag("-g3")
